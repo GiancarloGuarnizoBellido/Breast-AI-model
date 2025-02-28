@@ -7,7 +7,6 @@ import utils
 
 def BCELogitsLoss(y_hat, y, weight = None):
     return F.binary_cross_entropy_with_logits(y_hat, y, pos_weight=None)
-    #return F.binary_cross_entropy(y_hat, y)
 
 def BCEDiceLoss(y_hat, y, weight = 0.1, device = 'cuda'):
     bce_loss = F.binary_cross_entropy_with_logits(y_hat, y)
