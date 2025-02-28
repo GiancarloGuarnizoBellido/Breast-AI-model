@@ -8,18 +8,8 @@ import skvideo.io
 import cv2
 
 class WSIDataset(Dataset):
-    """ Dataset for plaques segmentation/classification """
-
     def __init__(self, meta_data, root_dir,  cache_data=False, transform=None):
-        """
-        Args:
-            root_dir (string): Directory with all the WSI. Each WSI has 4 folders:
-            --root_dir
-                --WSI_name
-            transform (callable, optional): Optional transform to be applied on a sample.
-        """
         df = pd.read_csv(meta_data)
-        #self.wsi_list = df.id.to_list()
         self.wsi_list = df.wsi.to_list()
         
         self.root_dir = root_dir
@@ -32,11 +22,7 @@ class WSIDataset(Dataset):
         return len(self.videos_path)
 
     def __getitem__(self, idx):
-        # if torch.is_tensor(idx):
-        #     idx = idx.tolist()
-        
         '''
-        Load patch and mask arrays:
         - images come from a single WSI.
         - mask --> 1 for plaques, 0 for background.
         '''
