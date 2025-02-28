@@ -3,8 +3,8 @@ import torch
 from torch import nn
 import utils
 import torchmetrics
-from models_arq.att_unet_seg import attention_unet_seg # attention_unet
-from loss import BCEDiceLoss, DiceLoss, FocalLoss, BCELogitsLoss, BCELoss, FocalLoss_weights, SigmoidFocalLoss, TopologicalPoolingLoss
+from models_arq.att_unet_seg import attention_unet_seg
+from loss import BCEDiceLoss, DiceLoss, BCELogitsLoss, BCELoss
 from torchmetrics.classification import BinaryJaccardIndex, BinaryPrecision, BinaryRecall, BinaryAccuracy, BinaryF1Score,BinaryStatScores, Dice
 from torchmetrics.classification import MulticlassJaccardIndex, MulticlassPrecision, MulticlassRecall, MulticlassAccuracy, MulticlassF1Score, MulticlassStatScores
 from torchmetrics.classification import Dice
@@ -144,9 +144,6 @@ class MyModel(L.LightningModule):
             else:
                 return self.loss_f(y_hat, y, weight = self.pos_weights)
 
-        if self.train_par.loss_opts.name == 'FocalLoss':
-            return self.loss_f(y_hat, y, alpha=1, gamma=2, logits=False, reduce=True)
-        
         if self.train_par.loss_opts.name == 'BCEDiceLoss':
             if self.train_par.loss_opts.args.weight == 'default':
                 return self.loss_f(y_hat, y, device=self.device)
@@ -158,15 +155,3 @@ class MyModel(L.LightningModule):
         
         if self.train_par.loss_opts.name == 'BCELoss':
             return self.loss_f(y_hat, y)     
-        
-        if self.train_par.loss_opts.name == 'FocalLoss_weights':
-            return self.loss_f(y_hat, y)         
-
-        if self.train_par.loss_opts.name == 'SigmoidFocalLoss':
-            return self.loss_f(y_hat, y)   
-         
-        if self.train_par.loss_opts.name == 'TopologicalPoolingLoss':
-            return self.loss_f(y_hat, y)           
-             
-        if self.train_par.loss_opts.name == 'TopologicalPoolingLoss_function':
-            return self.loss_f(y_hat, y)   
