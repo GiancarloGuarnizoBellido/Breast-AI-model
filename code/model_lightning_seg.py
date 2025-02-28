@@ -17,7 +17,6 @@ class MyModel(L.LightningModule):
         super().__init__()
         # Define your model architecture here. For example:
         model_def = globals()[model_opts.name]
-        #self.model = model_def(input_channels=1)  # Assuming your model's __init__ doesn't take parameters
         self.model = model_def(input_channels=1)  # Assuming your model's __init__ doesn't take parameters
 
         self.train_par = train_par
@@ -36,27 +35,8 @@ class MyModel(L.LightningModule):
         Args:
         - stage (str): The stage for which to initialize the metrics. Should be 'train', 'dev', or 'test'.
         """
-
-        # if self.num_classes == 2:           
-        #     metrics = {
-        #         #'stat_scores': BinaryStatScores(threshold=self.eval_threshold),
-        #         'Dice': Dice(average='micro',threshold=self.eval_threshold),
-        #         'IoT': BinaryJaccardIndex(threshold=self.eval_threshold),
-        #         'precision': BinaryPrecision(threshold=self.eval_threshold),
-        #         'accuracy': BinaryAccuracy(threshold=self.eval_threshold),
-        #     }  
-        # else:
-        #     metrics = {
-        #         #'stat_scores':MulticlassStatScores(num_classes=self.num_classes),
-        #         'Dice': Dice(average='micro',num_classes=self.num_classes),
-        #         'IoT': JaccardIndex(task="multiclass", num_classes=self.num_classes),
-        #         'precision': MulticlassPrecision(num_classes=self.num_classes),
-        #         'accuracy': MulticlassAccuracy(num_classes=self.num_classes),
-        #     }  
-
         if self.num_classes == 2:           
             metrics = {
-                #'stat_scores': BinaryStatScores(threshold=self.eval_threshold),
                 'Dice (lightning AI)': Dice(average='micro',threshold=self.eval_threshold),
                 'IoU (lightning AI)': BinaryJaccardIndex(threshold=self.eval_threshold),
                 'precision': BinaryPrecision(threshold=self.eval_threshold),
@@ -64,7 +44,6 @@ class MyModel(L.LightningModule):
             }  
         else:
             metrics = {
-                #'stat_scores':MulticlassStatScores(num_classes=self.num_classes),
                 'Dice (lightning AI)': Dice(average='micro',threshold=self.eval_threshold),
                 'IoU (lightning AI)': MulticlassJaccardIndex(num_classes=self.num_classes),
                 'precision': MulticlassPrecision(num_classes=self.num_classes),
@@ -100,112 +79,58 @@ class MyModel(L.LightningModule):
     
     
     def training_step(self, batch, batch_idx):
-        # Implement what happens in a training step
         img, label = batch
-        #img, label = img.to(self.device), label.to(self.device)
-        # print("img")
-        # #print(img)
-        # print(img.shape)
-        # print(img.dtype)
-        # print("label")
-        # print(label)
-        # print(label.shape)
-        # print(label.dtype)       
-        #self.pos_weights = utils.pos_weight_batch(label)
         pred_mask = self(img)  # This uses the forward method
-        # print("pred")
-        # print(pred)
-        # print(pred.shape)
-        # print(pred.dtype)
-
         label = (label >= self.eval_threshold).to(torch.int64)
-
-        # print("pred new dim")
-        # print(pred)
-        # print(pred.shape)
-        # print(pred.dtype)
-        loss = self.get_loss(pred_mask.float(), label.float())  # You need to define or adjust get_loss accordingly
-        # print("loss")
-        # print(loss)
-        # print(loss.shape)
-        # print(loss.dtype)
+        loss = self.get_loss(pred_mask.float(), label.float()) 
         self.log('train_loss', loss)
-        #self.log_metrics('train', pred, label) #Delete train metrics
         return loss
 
 
     def validation_step(self, batch, batch_idx):
-        # Implement the validation step
         img, label = batch
-        #img, label = img.to(self.device), label.to(self.device)
-
-        #self.pos_weights = utils.pos_weight_batch(label)
         pred_mask = self(img)
 
         label = (label >= self.eval_threshold).to(torch.int64)
 
         loss = self.get_loss(pred_mask.float(), label.float())
         self.log('val_loss', loss)
-        #print("shape: ", pred.shape, label.shape)
-        #print("type: ",pred.dtype, label.dtype)
-        pred_prob = torch.sigmoid(pred_mask)  # Obtener probabilidad
+        pred_prob = torch.sigmoid(pred_mask)
         pred = (pred_prob >= self.eval_threshold).to(torch.int64)
         self.log_metrics('val', pred, label)
 
     
     def test_step(self, batch, batch_idx):
-        # Implement the test step
         img, label = batch
-        #img, label = img.to(self.device), label.to(self.device)
-
-        #self.pos_weights = utils.pos_weight_batch(label)
         pred_mask = self(img)
-
         label = (label >= self.eval_threshold).to(torch.int64)
-
         loss = self.get_loss(pred_mask.float(), label.float())
         self.log('test_loss', loss)
-        #print("shape: ", pred.shape, label.shape)
-        #print("type: ",pred.dtype, label.dtype)
-        pred_prob = torch.sigmoid(pred_mask)  # Obtener probabilidad
+        pred_prob = torch.sigmoid(pred_mask)
         pred = (pred_prob >= self.eval_threshold).to(torch.int64)
         self.log_metrics('test', pred, label)
 
     def predict_step(self, batch, batch_idx, dataloader_idx=None):
-        # Implement the prediction step
         img, label = batch
-        #img, label = img.to(self.device), label.to(self.device)
-
-        #self.pos_weights = utils.pos_weight_batch(label)
         pred_mask = self(img)
-        pred_prob = torch.sigmoid(pred_mask)  # Obtener probabilidad
+        pred_prob = torch.sigmoid(pred_mask)
         pred = (pred_prob >= self.eval_threshold).to(torch.float)
         label = (label >= self.eval_threshold).to(torch.float)
-
         return pred
 
-
     def predict_step_aux(self, batch, batch_idx, dataloader_idx=None):
-        # Implement the prediction step
         img, label = batch
-
-        #self.pos_weights = utils.pos_weight_batch(label)
         pred_mask = self(img)
-        pred_prob = torch.sigmoid(pred_mask)  # Obtener probabilidad
+        pred_prob = torch.sigmoid(pred_mask)
         pred = (pred_prob >= self.eval_threshold).to(torch.float)
         label = (label >= self.eval_threshold).to(torch.float)
-
         return pred, pred_prob, pred_mask, label
     
     def configure_optimizers(self):
-        # Configure optimizers and LR schedulers
-        #optimizer = torch.optim.Adam(self.parameters(), lr=self.train_par.lr)
-        #Adamw
         optimizer=torch.optim.AdamW(self.parameters(), lr=self.train_par.lr, weight_decay=self.train_par.weight_decay)
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=5)
         return {"optimizer": optimizer, "lr_scheduler": scheduler, "monitor": "val_loss"}
 
-    # Implement the get_loss method here, adjust it based on your original Trainer class
     def get_loss(self, y_hat, y):
         if self.train_par.loss_opts.name != 'default':
             self.loss_f = globals()[self.train_par.loss_opts.name]
