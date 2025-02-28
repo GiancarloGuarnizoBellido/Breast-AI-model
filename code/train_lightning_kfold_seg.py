@@ -23,9 +23,9 @@ def train(dataset_train, dataset_test,conf,k_fold_value):
     torch.backends.cudnn.benchmark = True
     torch.set_float32_matmul_precision('medium')
     data_dir = conf.dataset.data_dir
-    train_file = dataset_train
-    dev_file = dataset_test
-    test_file = dataset_test
+    #train_file = dataset_train
+    #dev_file = dataset_test
+    #test_file = dataset_test
     cache_data = conf.dataset.cache_data
     rescale_factor = conf.dataset.rescale_factor
 
@@ -44,7 +44,7 @@ def train(dataset_train, dataset_test,conf,k_fold_value):
 
     # Create a DataModule
     data_module = WSIDataModule(batch_size=conf.train_par.batch_size, workers=conf.train_par.workers, train_file=train_file, 
-                                dev_file=dev_file,test_file=None, data_dir=data_dir, cache_data=cache_data)
+                                dev_file=dev_file,|=None, data_dir=data_dir, cache_data=cache_data)
     #Image batch: torch.Size([1, 1, 128, 128, 128])
     #Label batch: torch.Size([1])
     
@@ -63,23 +63,23 @@ def train(dataset_train, dataset_test,conf,k_fold_value):
 
     trainer = L.Trainer(
         max_epochs=conf.train_par.epochs, accelerator="auto", devices="auto",logger=wandb_logger,callbacks=[early_stop_callback,model_checkpoint],        
-        default_root_dir=results_path#,log_every_n_steps=46
+        default_root_dir=results_path
     )
     trainer.fit(model=lightning_model, datamodule=data_module)
     return trainer
 
 
 def create_files(k_fold_value, conf):
-    df_data = pd.read_csv("/media/stefano/Seagate Expansion Drive/rochester_luis_emilio/LIMICM2_emilio/giancarlo_model/prueba/nombre_paciente_random.csv")
+    df_data = pd.read_csv("./data_csv_raw.csv")
     
-    # Ruta base para guardar los archivos de cada fold
-    base_path = "/media/stefano/Seagate Expansion Drive/rochester_luis_emilio/LIMICM2_emilio/giancarlo_model/Classification/data_csv_seg/data_kfold_10"
+    # Base path to save the files of each fold
+    base_path = "./data_csv_new/data_kfold_10"
     os.makedirs(base_path, exist_ok=True)
     
-    # Combinar las columnas label y malign para crear una etiqueta compuesta
+    # Combine label and malign columns to create a composite label
     df_data["combined_label"] = df_data["label"].astype(str) + '_' + df_data["malign"].astype(str)
     
-    # Dividir los pacientes en k grupos para el k-fold
+    # Divide patients into k groups for k-fold
     skf = StratifiedKFold(n_splits=k_fold_value, shuffle=False)
     i = 0
     
@@ -104,16 +104,16 @@ def create_files(k_fold_value, conf):
 if __name__ == "__main__":
     
     trainparser = argparse.ArgumentParser(description='[StratifIAD] Parameters for training', allow_abbrev=False)
-    trainparser.add_argument('-c','--config-file', type=str, default='/media/stefano/Seagate Expansion Drive/rochester_luis_emilio/LIMICM2_emilio/giancarlo_model/Classification/default_config_train_seg.yaml')
+    trainparser.add_argument('-c','--config-file', type=str, default='./default_config_train_seg.yaml')
     args = trainparser.parse_args()
     conf = Dict(yaml.safe_load(open(args.config_file, "r")))
 
     k_fold_value=10
 
-    #dir_dataset=create_files(k_fold_value,conf)
+    dir_dataset=create_files(k_fold_value,conf)
     #data_csv: 69 malignant and benign videos
     #data_csv_new: 60 malignant and benign videos
-    dir_dataset='/media/stefano/Seagate Expansion Drive/rochester_luis_emilio/LIMICM2_emilio/giancarlo_model/prueba/data_csv_new'
+    #dir_dataset='./data_csv_new'
  
     elementos = os.listdir(dir_dataset)
     archivos = [os.path.join(dir_dataset, elemento) for elemento in elementos]
@@ -123,7 +123,7 @@ if __name__ == "__main__":
         print(archivos_ordenados[iteracion])
         print(archivos_ordenados[iteracion+1])
 
-    print("INICIO")
+    print("START")
     for iteracion in range(0,k_fold_value*2,2):
         dataset_test=archivos_ordenados[iteracion]
         dataset_train=archivos_ordenados[iteracion+1]
