@@ -1,1 +1,1 @@
-# BREAST-AI-model
+# BREAST-AI-MODEL
