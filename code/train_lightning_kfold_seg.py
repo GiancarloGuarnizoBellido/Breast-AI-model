@@ -45,8 +45,7 @@ def train(dataset_train, dataset_test,conf,k_fold_value):
     # Create a DataModule
     data_module = WSIDataModule(batch_size=conf.train_par.batch_size, workers=conf.train_par.workers, train_file=train_file, 
                                 dev_file=dev_file,|=None, data_dir=data_dir, cache_data=cache_data)
-    #Image batch: torch.Size([1, 1, 128, 128, 128])
-    #Label batch: torch.Size([1])
+    #Image and Label batch: torch.Size([1, 1, 128, 128, 128])
     
     data_module.prepare_data()
     data_module.setup(stage="fit")
