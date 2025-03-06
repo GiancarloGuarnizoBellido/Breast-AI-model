@@ -75,9 +75,7 @@ if __name__ == "__main__":
     conf = Dict(yaml.safe_load(open(args.config_file, "r")))
 
     k_fold_value=10
-    dir_dataset='./data_csv_new'
-    #data_csv_new (60 malignant and benign video):
-    #Contains ten .csv train k-fold files and ten .csv test k-fold files
+    dir_dataset='./data_csv_new' #Contains ten .csv train k-fold files and ten .csv test k-fold files
 
     elementos = os.listdir(dir_dataset)
     archivos = [os.path.join(dir_dataset, elemento) for elemento in elementos]
