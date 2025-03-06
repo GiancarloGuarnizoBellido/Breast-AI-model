@@ -23,9 +23,9 @@ def train(dataset_train, dataset_test,conf,k_fold_value):
     torch.backends.cudnn.benchmark = True
     torch.set_float32_matmul_precision('medium')
     data_dir = conf.dataset.data_dir
-    #train_file = dataset_train
-    #dev_file = dataset_test
-    #test_file = dataset_test
+    train_file = dataset_train
+    dev_file = dataset_test
+    test_file = dataset_test
     cache_data = conf.dataset.cache_data
     rescale_factor = conf.dataset.rescale_factor
 
