@@ -67,39 +67,6 @@ def train(dataset_train, dataset_test,conf,k_fold_value):
     trainer.fit(model=lightning_model, datamodule=data_module)
     return trainer
 
-
-def create_files(k_fold_value, conf):
-    df_data = pd.read_csv("./data_csv_raw.csv")
-    
-    # Base path to save the files of each fold
-    base_path = "./data_csv_new/data_kfold_10"
-    os.makedirs(base_path, exist_ok=True)
-    
-    # Combine label and malign columns to create a composite label
-    df_data["combined_label"] = df_data["label"].astype(str) + '_' + df_data["malign"].astype(str)
-    
-    # Divide patients into k groups for k-fold
-    skf = StratifiedKFold(n_splits=k_fold_value, shuffle=False)
-    i = 0
-    
-    # Iteration for each fold
-    for fold, (train_index, test_index) in enumerate(skf.split(df_data["id"], df_data["combined_label"])):        
-        # Obtain train and test data
-        train_data = df_data.iloc[train_index].copy()
-        test_data = df_data.iloc[test_index].copy()
-        train_data = train_data.drop(columns=["combined_label"])
-        test_data = test_data.drop(columns=["combined_label"])
-        
-        # Create CSV filenames
-        train_csv_path = os.path.join(base_path, f"train_kfold_{fold+1}.csv")
-        test_csv_path = os.path.join(base_path, f"test_kfold_{fold+1}.csv")
-        
-        # Save DataFrames in CSV files
-        train_data.to_csv(train_csv_path, index=False)
-        test_data.to_csv(test_csv_path, index=False)
-    
-    return base_path
-
 if __name__ == "__main__":
     
     trainparser = argparse.ArgumentParser(description='[StratifIAD] Parameters for training', allow_abbrev=False)
@@ -108,12 +75,10 @@ if __name__ == "__main__":
     conf = Dict(yaml.safe_load(open(args.config_file, "r")))
 
     k_fold_value=10
+    dir_dataset='./data_csv_new'
+    #data_csv_new (60 malignant and benign video):
+    #Contains ten .csv train k-fold files and ten .csv test k-fold files
 
-    dir_dataset=create_files(k_fold_value,conf)
-    #data_csv: 69 malignant and benign videos
-    #data_csv_new: 60 malignant and benign videos
-    #dir_dataset='./data_csv_new'
- 
     elementos = os.listdir(dir_dataset)
     archivos = [os.path.join(dir_dataset, elemento) for elemento in elementos]
     archivos_ordenados = sorted(archivos, key=lambda x: int(x.split("_")[-1].split(".")[0]))
